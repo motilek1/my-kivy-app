@@ -11,10 +11,10 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
@@ -25,14 +25,17 @@ jobs:
         pip install --upgrade pip
         pip install "cython<3.0.0" buildozer
 
-    - name: Fix buildozer.spec
+    - name: Fix buildozer.spec requirements
       run: |
         sed -i 's/kivymd==1.2.0/kivymd/g' buildozer.spec
         sed -i 's/kivy==2.3.0/kivy/g' buildozer.spec
+        sed -i 's/android.api = .*/android.api = 33/g' buildozer.spec
+        sed -i 's/android.minapi = .*/android.minapi = 21/g' buildozer.spec
+        sed -i 's/android.ndk = .*/android.ndk = 25b/g' buildozer.spec
 
     - name: Build with Buildozer
       run: |
-        buildozer -v android debug
+        yes | buildozer -v android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
