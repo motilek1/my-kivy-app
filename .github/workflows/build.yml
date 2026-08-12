@@ -7,23 +7,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev libffi-dev python3-dev ccache openjdk-17-jdk zip unzip lld libtool autoconf automake pkg-config gettext
-        pip install --upgrade pip
-        pip install "cython<3.0.0" buildozer
 
     - name: Configure buildozer.spec
       run: |
@@ -32,11 +20,12 @@ jobs:
         sed -i 's/android.api = .*/android.api = 33/g' buildozer.spec
         sed -i 's/android.minapi = .*/android.minapi = 21/g' buildozer.spec
         sed -i 's/android.ndk = .*/android.ndk = 25b/g' buildozer.spec
-        sed -i 's/# android.build_tools_version = .*/android.build_tools_version = 33.0.2/g' buildozer.spec
 
-    - name: Build with Buildozer
-      run: |
-        yes y | buildozer -v android debug
+    - name: Build with Buildozer Action
+      uses: ArtemShedko/action-buildozer@v1
+      with:
+        command: buildozer -v android debug
+        subfolder: .
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
