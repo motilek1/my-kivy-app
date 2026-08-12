@@ -25,17 +25,18 @@ jobs:
         pip install --upgrade pip
         pip install "cython<3.0.0" buildozer
 
-    - name: Fix buildozer.spec requirements
+    - name: Configure buildozer.spec
       run: |
         sed -i 's/kivymd==1.2.0/kivymd/g' buildozer.spec
         sed -i 's/kivy==2.3.0/kivy/g' buildozer.spec
         sed -i 's/android.api = .*/android.api = 33/g' buildozer.spec
         sed -i 's/android.minapi = .*/android.minapi = 21/g' buildozer.spec
         sed -i 's/android.ndk = .*/android.ndk = 25b/g' buildozer.spec
+        echo "android.accept_sdk_licenses = True" >> buildozer.spec
 
     - name: Build with Buildozer
       run: |
-        yes | buildozer -v android debug
+        buildozer -v android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
