@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev libffi-dev python3-dev ccache openjdk-17-jdk zip unzip lld libtool autoconf automake pkg-config gettext
+        sudo apt-get install -y build-essential libssl-dev libffi-dev python3-dev ccache openjdk-17-jdk zip unzip lld libtool autoconf automake pkg-config gettext android-sdk
         pip install --upgrade pip
         pip install "cython<3.0.0" buildozer
 
@@ -32,7 +32,10 @@ jobs:
         sed -i 's/android.api = .*/android.api = 33/g' buildozer.spec
         sed -i 's/android.minapi = .*/android.minapi = 21/g' buildozer.spec
         sed -i 's/android.ndk = .*/android.ndk = 25b/g' buildozer.spec
-        printf "\nandroid.accept_sdk_licenses = True\n" >> buildozer.spec
+
+    - name: Accept Android SDK Licenses
+      run: |
+        yes | sdkmanager --licenses || true
 
     - name: Build with Buildozer
       run: |
