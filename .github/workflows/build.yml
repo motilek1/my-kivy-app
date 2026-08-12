@@ -7,13 +7,25 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Configure buildozer.spec
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libssl-dev libffi-dev python3-dev ccache openjdk-17-jdk zip unzip lld libtool autoconf automake pkg-config gettext
+        pip install --upgrade pip
+        pip install "cython<3.0.0" buildozer
+
+    - name: Fix buildozer.spec
       run: |
         sed -i 's/kivymd==1.2.0/kivymd/g' buildozer.spec
         sed -i 's/kivy==2.3.0/kivy/g' buildozer.spec
@@ -21,11 +33,9 @@ jobs:
         sed -i 's/android.minapi = .*/android.minapi = 21/g' buildozer.spec
         sed -i 's/android.ndk = .*/android.ndk = 25b/g' buildozer.spec
 
-    - name: Build with Buildozer Action
-      uses: ArtemShedko/action-buildozer@v1
-      with:
-        command: buildozer -v android debug
-        subfolder: .
+    - name: Build with Buildozer
+      run: |
+        buildozer -v android debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
