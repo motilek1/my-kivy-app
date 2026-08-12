@@ -25,6 +25,10 @@ jobs:
         pip install --upgrade pip
         pip install "cython<3.0.0" buildozer
 
+    - name: Accept Android SDK Licenses & Setup SDK
+      run: |
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
     - name: Fix buildozer.spec
       run: |
         sed -i 's/kivymd==1.2.0/kivymd/g' buildozer.spec
@@ -32,13 +36,8 @@ jobs:
         sed -i 's/android.api = .*/android.api = 33/g' buildozer.spec
         sed -i 's/android.minapi = .*/android.minapi = 21/g' buildozer.spec
         sed -i 's/android.ndk = .*/android.ndk = 25b/g' buildozer.spec
+        sed -i "s|# android.sdk_path = .*|android.sdk_path = $ANDROID_HOME|g" buildozer.spec
         sed -i 's/# android.build_tools_version = .*/android.build_tools_version = 33.0.2/g' buildozer.spec
-
-    - name: Pre-accept Android SDK Licenses
-      run: |
-        mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
-        printf "24333f8a6371d6a4d1960f7b0062229b42c2638f\nd56f5187479451eabf01fb78af6d7086637608dd\n84831b9409646a918e30573bab4c9c91346d8abd\n" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-        printf "84831b9409646a918e30573bab4c9c91346d8abd\n" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
 
     - name: Build with Buildozer
       run: |
