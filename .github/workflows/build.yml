@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev libffi-dev python3-dev ccache openjdk-17-jdk zip unzip lld libtool autoconf automake pkg-config gettext android-sdk
+        sudo apt-get install -y build-essential libssl-dev libffi-dev python3-dev ccache openjdk-17-jdk zip unzip lld libtool autoconf automake pkg-config gettext
         pip install --upgrade pip
         pip install "cython<3.0.0" buildozer
 
@@ -32,14 +32,18 @@ jobs:
         sed -i 's/android.api = .*/android.api = 33/g' buildozer.spec
         sed -i 's/android.minapi = .*/android.minapi = 21/g' buildozer.spec
         sed -i 's/android.ndk = .*/android.ndk = 25b/g' buildozer.spec
-
-    - name: Accept Android SDK Licenses
-      run: |
-        yes | sdkmanager --licenses || true
+        sed -i 's/# android.build_tools_version = .*/android.build_tools_version = 33.0.2/g' buildozer.spec
 
     - name: Build with Buildozer
       run: |
-        buildozer -v android debug
+        expect -c '
+        set timeout -1
+        spawn buildozer -v android debug
+        expect {
+            "Accept? (y/N):" { send "y\r"; exp_continue }
+            eof
+        }
+        '
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
