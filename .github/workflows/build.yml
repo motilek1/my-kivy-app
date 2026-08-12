@@ -25,9 +25,11 @@ jobs:
         pip install --upgrade pip
         pip install "cython<3.0.0" buildozer
 
-    - name: Accept Android SDK Licenses & Setup SDK
+    - name: Accept Android SDK Licenses
       run: |
         yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+        cp -r $ANDROID_HOME/licenses/* ~/.buildozer/android/platform/android-sdk/licenses/ || true
 
     - name: Fix buildozer.spec
       run: |
@@ -36,8 +38,11 @@ jobs:
         sed -i 's/android.api = .*/android.api = 33/g' buildozer.spec
         sed -i 's/android.minapi = .*/android.minapi = 21/g' buildozer.spec
         sed -i 's/android.ndk = .*/android.ndk = 25b/g' buildozer.spec
-        sed -i "s|# android.sdk_path = .*|android.sdk_path = $ANDROID_HOME|g" buildozer.spec
-        sed -i 's/# android.build_tools_version = .*/android.build_tools_version = 33.0.2/g' buildozer.spec
+        
+        # Видаляємо будь-які існуючі згадки build_tools_version і ставимо 33.0.2
+        sed -i '/android.build_tools_version/d' buildozer.spec
+        echo -e "\nandroid.build_tools_version = 33.0.2" >> buildozer.spec
+        echo "android.accept_sdk_licenses = True" >> buildozer.spec
 
     - name: Build with Buildozer
       run: |
