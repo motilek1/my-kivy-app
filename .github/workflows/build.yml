@@ -21,15 +21,23 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev libffi-dev python3-dev ccache openjdk-17-jdk zip unzip lld libtool autoconf automake pkg-config gettext
+        sudo apt-get install -y build-essential libssl-dev libffi-dev python3-dev ccache openjdk-17-jdk zip unzip lld libtool autoconf automake pkg-config gettext wget
         pip install --upgrade pip
         pip install "cython<3.0.0" buildozer
 
-    - name: Accept Android SDK Licenses
+    - name: Install Android Command Line Tools & Accept Licenses
       run: |
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-        mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
-        cp -r $ANDROID_HOME/licenses/* ~/.buildozer/android/platform/android-sdk/licenses/ || true
+        # Створюємо потрібну папку для SDK
+        mkdir -p ~/.buildozer/android/platform/android-sdk/tools
+        
+        # Завантажуємо та розпаковуємо SDK tools у точне місце, яке чекає Buildozer
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9441835_latest.zip -O cmdline-tools.zip
+        unzip -q cmdline-tools.zip
+        mv cmdline-tools/* ~/.buildozer/android/platform/android-sdk/tools/
+        rm -rf cmdline-tools cmdline-tools.zip
+
+        # Приймаємо всі ліцензії через розпакований sdkmanager
+        yes | ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --sdk_root=/home/runner/.buildozer/android/platform/android-sdk --licenses || true
 
     - name: Fix buildozer.spec
       run: |
@@ -39,10 +47,8 @@ jobs:
         sed -i 's/android.minapi = .*/android.minapi = 21/g' buildozer.spec
         sed -i 's/android.ndk = .*/android.ndk = 25b/g' buildozer.spec
         
-        # Видаляємо будь-які існуючі згадки build_tools_version і ставимо 33.0.2
         sed -i '/android.build_tools_version/d' buildozer.spec
         echo -e "\nandroid.build_tools_version = 33.0.2" >> buildozer.spec
-        echo "android.accept_sdk_licenses = True" >> buildozer.spec
 
     - name: Build with Buildozer
       run: |
